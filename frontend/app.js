@@ -356,6 +356,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("logout-btn")?.addEventListener("click", logout);
 
+  // ── Ticker search (any page) ──────────────────────────────────────────
+  document.getElementById("ticker-search-form")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const ticker = document.getElementById("ticker-search-input").value.trim().toUpperCase();
+    if (ticker) openTickerModal(ticker);
+  });
+
   // ── Dashboard (index.html) ────────────────────────────────────────────
   if (document.getElementById("holding-form")) {
     const form      = document.getElementById("holding-form");
