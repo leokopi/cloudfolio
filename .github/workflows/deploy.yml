@@ -4,32 +4,32 @@ on:
   push:
     branches: [main]
 
+env:
+  AWS_REGION: us-east-2
+  STACK_NAME: cloudfolio
+  FRONTEND_BUCKET: cloudfolio-frontend-594552272210
+  CLOUDFRONT_DIST_ID: E57RX2DMWF5JY
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-2
+          aws-region: ${{ env.AWS_REGION }}
 
-      - name: Package Lambda functions
+      - name: Package and upload Lambda zips
         run: |
           for func in get_portfolio post_holding get_prices delete_holding get_market; do
             cd backend/$func
             zip -j ../../$func.zip lambda_function.py
             cd ../..
-          done
-
-      - name: Upload Lambda zips to S3
-        run: |
-          for func in get_portfolio post_holding get_prices delete_holding get_market; do
             aws s3 cp $func.zip s3://${{ secrets.DEPLOY_BUCKET }}/$func.zip
           done
 
@@ -38,7 +38,7 @@ jobs:
         run: |
           aws cloudformation deploy \
             --template-file infrastructure/cloudformation.yaml \
-            --stack-name cloudfolio \
+            --stack-name ${{ env.STACK_NAME }} \
             --capabilities CAPABILITY_NAMED_IAM \
             --no-fail-on-empty-changeset \
             --parameter-overrides \
@@ -48,18 +48,19 @@ jobs:
 
       - name: Update Lambda function code
         run: |
-          aws lambda update-function-code --function-name cloudfolio-get-portfolio --s3-bucket ${{ secrets.DEPLOY_BUCKET }} --s3-key get_portfolio.zip
-          aws lambda update-function-code --function-name cloudfolio-post-holding --s3-bucket ${{ secrets.DEPLOY_BUCKET }} --s3-key post_holding.zip
-          aws lambda update-function-code --function-name cloudfolio-get-prices --s3-bucket ${{ secrets.DEPLOY_BUCKET }} --s3-key get_prices.zip
-          aws lambda update-function-code --function-name cloudfolio-delete-holding --s3-bucket ${{ secrets.DEPLOY_BUCKET }} --s3-key delete_holding.zip
-          aws lambda update-function-code --function-name cloudfolio-get-market --s3-bucket ${{ secrets.DEPLOY_BUCKET }} --s3-key get_market.zip
+          for func in get_portfolio post_holding get_prices delete_holding get_market; do
+            aws lambda update-function-code \
+              --function-name cloudfolio-$func \
+              --s3-bucket ${{ secrets.DEPLOY_BUCKET }} \
+              --s3-key $func.zip
+          done
 
       - name: Sync frontend to S3
         run: |
-          BUCKET=$(aws cloudformation describe-stacks --stack-name cloudfolio --query "Stacks[0].Outputs[?OutputKey=='FrontendBucketName'].OutputValue" --output text)
-          aws s3 sync frontend/ s3://$BUCKET/ --delete
+          aws s3 sync frontend/ s3://${{ env.FRONTEND_BUCKET }}/ --delete
 
       - name: Invalidate CloudFront cache
         run: |
-          DIST_ID=$(aws cloudformation describe-stacks --stack-name cloudfolio --query "Stacks[0].Outputs[?OutputKey=='CloudFrontDistributionId'].OutputValue" --output text)
-          aws cloudfront create-invalidation --distribution-id $DIST_ID --paths "/*"
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ env.CLOUDFRONT_DIST_ID }} \
+            --paths "/*"
