@@ -142,9 +142,14 @@ function renderHoldings(holdings) {
 
 // ── Boot ──────────────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("logout-btn")?.addEventListener("click", logout);
+  if (!getToken()) {
+    globalThis.location.replace("/login.html");
+    return;
+  }
 
-  document.getElementById("holding-form")?.addEventListener("submit", async (e) => {
+  document.getElementById("logout-btn").addEventListener("click", logout);
+
+  document.getElementById("holding-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const ticker   = document.getElementById("ticker").value.trim().toUpperCase();
     const shares   = parseFloat(document.getElementById("shares").value);
@@ -153,14 +158,5 @@ document.addEventListener("DOMContentLoaded", () => {
     e.target.reset();
   });
 
-  if (getToken()) {
-    document.getElementById("auth-section").hidden = true;
-    document.getElementById("app-section").hidden = false;
-    document.getElementById("logout-btn").hidden = false;
-    loadPortfolio();
-  } else {
-    document.getElementById("auth-section").hidden = false;
-    document.getElementById("app-section").hidden = true;
-    document.getElementById("login-btn")?.addEventListener("click", login);
-  }
+  loadPortfolio();
 });

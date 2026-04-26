@@ -9,33 +9,23 @@
 <body>
   <header>
     <h1>CloudFolio</h1>
-    <button id="logout-btn" hidden>Sign out</button>
+    <button id="logout-btn">Sign out</button>
   </header>
 
   <main>
-    <section id="auth-section">
-      <div class="login-box">
-        <h2>Welcome to CloudFolio</h2>
-        <p>Track your stock portfolio in the cloud.</p>
-        <button id="login-btn" class="primary-btn">Sign in with Google</button>
-      </div>
+    <section id="portfolio">
+      <h2>My Holdings</h2>
+      <div id="holdings-list"></div>
     </section>
 
-    <section id="app-section" hidden>
-      <div id="portfolio">
-        <h2>My Holdings</h2>
-        <div id="holdings-list"></div>
-      </div>
-
-      <div id="add-holding">
-        <h2>Add Holding</h2>
-        <form id="holding-form">
-          <input type="text" id="ticker" placeholder="Ticker (e.g. AAPL)" required />
-          <input type="number" id="shares" placeholder="Shares" step="any" min="0" required />
-          <input type="number" id="avg-cost" placeholder="Avg Cost ($)" step="any" min="0" required />
-          <button type="submit" class="primary-btn">Add</button>
-        </form>
-      </div>
+    <section id="add-holding">
+      <h2>Add Holding</h2>
+      <form id="holding-form">
+        <input type="text" id="ticker" placeholder="Ticker (e.g. AAPL)" required />
+        <input type="number" id="shares" placeholder="Shares" step="any" min="0" required />
+        <input type="number" id="avg-cost" placeholder="Avg Cost ($)" step="any" min="0" required />
+        <button type="submit" class="primary-btn">Add</button>
+      </form>
     </section>
   </main>
 
