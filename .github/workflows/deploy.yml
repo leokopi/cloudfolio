@@ -24,6 +24,18 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Lint Lambda functions
+        run: |
+          for func in get_portfolio post_holding get_prices delete_holding get_market get_networth post_networth_item delete_networth_item; do
+            python -m py_compile backend/$func/lambda_function.py
+            echo "$func OK"
+          done
+
+      - name: Validate CloudFormation template
+        run: |
+          aws cloudformation validate-template \
+            --template-body file://infrastructure/cloudformation.yaml
+
       - name: Package and upload Lambda zips
         run: |
           for func in get_portfolio post_holding get_prices delete_holding get_market get_networth post_networth_item delete_networth_item; do
