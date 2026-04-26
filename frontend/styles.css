@@ -1,46 +1,203 @@
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
+/* ── Reset ─────────────────────────────────────────────────────────────── */
+* { box-sizing: border-box; margin: 0; padding: 0; }
 [hidden] { display: none !important; }
 
+/* ── Base ──────────────────────────────────────────────────────────────── */
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #f5f7fa;
+  background: #f0f2f5;
   color: #1a1a2e;
+  min-height: 100vh;
 }
 
+/* ── Header ────────────────────────────────────────────────────────────── */
 header {
   background: #1a1a2e;
   color: #fff;
-  padding: 1rem 2rem;
+  padding: 0.9rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
-main {
-  max-width: 900px;
-  margin: 2rem auto;
-  padding: 0 1rem;
+header h1 { font-size: 1.3rem; letter-spacing: 0.03em; }
+
+#logout-btn {
+  padding: 0.35rem 1rem;
+  background: transparent;
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+#logout-btn:hover { background: rgba(255,255,255,0.1); }
+
+/* ── Layout ────────────────────────────────────────────────────────────── */
+.app-layout {
   display: grid;
-  gap: 2rem;
+  grid-template-columns: 210px 1fr 230px;
+  gap: 1.25rem;
+  max-width: 1300px;
+  margin: 1.5rem auto;
+  padding: 0 1.25rem;
+  align-items: start;
 }
 
-section {
+@media (max-width: 1024px) {
+  .app-layout { grid-template-columns: 1fr; }
+  #market-sidebar, #portfolio-sidebar { display: none; }
+}
+
+/* ── Cards ─────────────────────────────────────────────────────────────── */
+.card {
   background: #fff;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+  margin-bottom: 1.25rem;
 }
 
-h2 {
-  margin-bottom: 1rem;
-  font-size: 1.1rem;
-  color: #555;
+.card h2 {
+  font-size: 0.8rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.07em;
+  color: #888;
+  margin-bottom: 1rem;
 }
 
+/* ── Sidebar ───────────────────────────────────────────────────────────── */
+.sidebar {
+  background: #fff;
+  border-radius: 10px;
+  padding: 1.1rem 1.25rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+  position: sticky;
+  top: 70px;
+}
+
+.sidebar-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #888;
+  margin-bottom: 0.9rem;
+}
+
+/* ── Market sidebar ────────────────────────────────────────────────────── */
+.market-list { list-style: none; }
+
+.market-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid #f3f3f3;
+  gap: 0.5rem;
+}
+.market-item:last-child { border-bottom: none; }
+
+.market-name { font-size: 0.85rem; color: #444; }
+
+.market-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.1rem;
+}
+
+.market-price { font-size: 0.9rem; font-weight: 600; }
+.market-pct { font-size: 0.75rem; font-weight: 500; }
+
+.market-item.skeleton .market-price,
+.market-item.skeleton .market-pct { color: #ccc; }
+
+/* ── Portfolio sidebar ─────────────────────────────────────────────────── */
+.summary-total {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+}
+
+.summary-change {
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+.mini-holdings {
+  list-style: none;
+  margin-bottom: 1rem;
+}
+
+.mini-holding {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.4rem 0;
+  font-size: 0.85rem;
+  border-bottom: 1px solid #f3f3f3;
+}
+.mini-holding:last-child { border-bottom: none; }
+.mini-holding .ticker { font-weight: 600; }
+.mini-holding .alloc  { color: #888; }
+
+.view-full-btn {
+  width: 100%;
+  padding: 0.55rem;
+  background: #f0f2f5;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #1a1a2e;
+}
+.view-full-btn:hover { background: #e2e6ea; }
+
+/* ── Holdings table ────────────────────────────────────────────────────── */
+table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+
+th, td {
+  text-align: left;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid #f3f3f3;
+}
+
+th { color: #aaa; font-weight: 600; font-size: 0.78rem; text-transform: uppercase; }
+tr:last-child td { border-bottom: none; }
+
+.ticker-btn {
+  background: none;
+  border: none;
+  color: #1a1a2e;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.92rem;
+  padding: 0;
+  text-decoration: underline dotted;
+}
+.ticker-btn:hover { color: #4f46e5; }
+
+.gain { color: #16a34a; }
+.loss { color: #dc2626; }
+
+.delete-btn {
+  background: none;
+  border: none;
+  color: #dc2626;
+  cursor: pointer;
+  font-size: 0.82rem;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+}
+.delete-btn:hover { background: #fef2f2; }
+
+/* ── Add holding form ──────────────────────────────────────────────────── */
 #holding-form {
   display: flex;
   gap: 0.75rem;
@@ -49,55 +206,110 @@ h2 {
 
 #holding-form input {
   flex: 1;
-  min-width: 120px;
+  min-width: 110px;
   padding: 0.5rem 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 0.95rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.92rem;
+  outline: none;
 }
+#holding-form input:focus { border-color: #1a1a2e; }
 
-#holding-form button {
+.primary-btn {
   padding: 0.5rem 1.25rem;
   background: #1a1a2e;
   color: #fff;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+.primary-btn:hover { background: #2e2e5e; }
+.primary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.form-error { color: #dc2626; font-size: 0.83rem; margin-top: 0.5rem; min-height: 1.2em; }
+.muted { color: #aaa; font-size: 0.9rem; }
+
+/* ── Modal ─────────────────────────────────────────────────────────────── */
+#ticker-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-#holding-form button:hover {
-  background: #2e2e5e;
+.modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.95rem;
+.modal-content {
+  position: relative;
+  background: #fff;
+  border-radius: 12px;
+  width: min(760px, 95vw);
+  padding: 1.5rem;
+  z-index: 1;
 }
 
-th, td {
-  text-align: left;
-  padding: 0.6rem 0.75rem;
-  border-bottom: 1px solid #f0f0f0;
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
 }
 
-th {
-  color: #888;
-  font-weight: 600;
-}
+.modal-header h2 { font-size: 1.2rem; }
 
-.gain { color: #16a34a; }
-.loss { color: #dc2626; }
-
-button.delete-btn {
+.modal-close {
   background: none;
   border: none;
-  color: #dc2626;
+  font-size: 1.5rem;
   cursor: pointer;
-  font-size: 0.85rem;
+  color: #888;
+  line-height: 1;
+}
+.modal-close:hover { color: #1a1a2e; }
+
+#modal-chart iframe {
+  width: 100%;
+  height: 420px;
+  border: none;
+  border-radius: 8px;
 }
 
+/* ── Toasts ────────────────────────────────────────────────────────────── */
+#toast-container {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 300;
+}
+
+.toast {
+  padding: 0.75rem 1.1rem;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.2s, transform 0.2s;
+  max-width: 280px;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.success { background: #16a34a; }
+.toast.error   { background: #dc2626; }
+
+/* ── Login page ────────────────────────────────────────────────────────── */
 body.login-page {
   display: flex;
   align-items: center;
@@ -108,56 +320,12 @@ body.login-page {
 
 .login-card {
   background: #fff;
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 3rem 2.5rem;
   text-align: center;
   width: 100%;
   max-width: 380px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.3);
 }
-
-.login-card h1 {
-  font-size: 1.8rem;
-  margin-bottom: 0.5rem;
-  color: #1a1a2e;
-}
-
-.login-card p {
-  color: #666;
-  margin-bottom: 2rem;
-}
-
-.primary-btn {
-  padding: 0.6rem 1.5rem;
-  background: #1a1a2e;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-}
-
-.primary-btn:hover {
-  background: #2e2e5e;
-}
-
-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-#logout-btn {
-  padding: 0.4rem 1rem;
-  background: transparent;
-  color: #fff;
-  border: 1px solid rgba(255,255,255,0.4);
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.85rem;
-}
-
-#app-section {
-  display: grid;
-  gap: 2rem;
-}
+.login-card h1 { font-size: 1.8rem; margin-bottom: 0.4rem; color: #1a1a2e; }
+.login-card p  { color: #666; margin-bottom: 2rem; }

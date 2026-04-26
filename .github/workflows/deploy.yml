@@ -21,7 +21,7 @@ jobs:
 
       - name: Package Lambda functions
         run: |
-          for func in get_portfolio post_holding get_prices delete_holding; do
+          for func in get_portfolio post_holding get_prices delete_holding get_market; do
             cd backend/$func
             zip -j ../../$func.zip lambda_function.py
             cd ../..
@@ -29,7 +29,7 @@ jobs:
 
       - name: Upload Lambda zips to S3
         run: |
-          for func in get_portfolio post_holding get_prices delete_holding; do
+          for func in get_portfolio post_holding get_prices delete_holding get_market; do
             aws s3 cp $func.zip s3://${{ secrets.DEPLOY_BUCKET }}/$func.zip
           done
 
@@ -52,6 +52,7 @@ jobs:
           aws lambda update-function-code --function-name cloudfolio-post-holding --s3-bucket ${{ secrets.DEPLOY_BUCKET }} --s3-key post_holding.zip
           aws lambda update-function-code --function-name cloudfolio-get-prices --s3-bucket ${{ secrets.DEPLOY_BUCKET }} --s3-key get_prices.zip
           aws lambda update-function-code --function-name cloudfolio-delete-holding --s3-bucket ${{ secrets.DEPLOY_BUCKET }} --s3-key delete_holding.zip
+          aws lambda update-function-code --function-name cloudfolio-get-market --s3-bucket ${{ secrets.DEPLOY_BUCKET }} --s3-key get_market.zip
 
       - name: Sync frontend to S3
         run: |

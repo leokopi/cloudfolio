@@ -214,6 +214,21 @@ Resources:
         Variables:
           HOLDINGS_TABLE: !Ref HoldingsTable
 
+  GetMarketFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: cloudfolio-get-market
+      Runtime: python3.12
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt LambdaRole.Arn
+      Code:
+        ZipFile: |
+          def lambda_handler(event, context):
+              return {"statusCode": 200, "body": "placeholder"}
+      Environment:
+        Variables:
+          POLYGON_API_KEY: !Ref PolygonApiKey
+
   # ── API Gateway ───────────────────────────────────────────────────────────
   Api:
     Type: AWS::ApiGateway::RestApi
@@ -257,6 +272,13 @@ Resources:
       RestApiId: !Ref Api
       ParentId: !GetAtt Api.RootResourceId
       PathPart: prices
+
+  MarketResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref Api
+      ParentId: !GetAtt Api.RootResourceId
+      PathPart: market
 
   # CORS preflight — OPTIONS methods (no auth, mock integration)
   PortfolioOptionsMethod:
@@ -323,6 +345,30 @@ Resources:
             ResponseParameters:
               method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization'"
               method.response.header.Access-Control-Allow-Methods: "'DELETE,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+
+  MarketOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref Api
+      ResourceId: !Ref MarketResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,OPTIONS'"
               method.response.header.Access-Control-Allow-Origin: "'*'"
       MethodResponses:
         - StatusCode: 200
@@ -400,6 +446,21 @@ Resources:
           - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${Arn}/invocations
           - Arn: !GetAtt DeleteHoldingFunction.Arn
 
+  GetMarketMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref Api
+      ResourceId: !Ref MarketResource
+      HttpMethod: GET
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${Arn}/invocations
+          - Arn: !GetAtt GetMarketFunction.Arn
+
   GetPricesMethod:
     Type: AWS::ApiGateway::Method
     Properties:
@@ -439,6 +500,14 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/*
 
+  GetMarketPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref GetMarketFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/*
+
   GetPricesPermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -458,6 +527,8 @@ Resources:
       - HoldingOptionsMethod
       - HoldingIdOptionsMethod
       - PricesOptionsMethod
+      - MarketOptionsMethod
+      - GetMarketMethod
     Properties:
       RestApiId: !Ref Api
       StageName: prod

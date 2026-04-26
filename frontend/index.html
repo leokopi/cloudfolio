@@ -12,22 +12,65 @@
     <button id="logout-btn">Sign out</button>
   </header>
 
-  <main>
-    <section id="portfolio">
-      <h2>My Holdings</h2>
-      <div id="holdings-list"></div>
-    </section>
+  <div class="app-layout">
 
-    <section id="add-holding">
-      <h2>Add Holding</h2>
-      <form id="holding-form">
-        <input type="text" id="ticker" placeholder="Ticker (e.g. AAPL)" required />
-        <input type="number" id="shares" placeholder="Shares" step="any" min="0" required />
-        <input type="number" id="avg-cost" placeholder="Avg Cost ($)" step="any" min="0" required />
-        <button type="submit" class="primary-btn">Add</button>
-      </form>
-    </section>
-  </main>
+    <!-- Left sidebar: live market data -->
+    <aside class="sidebar" id="market-sidebar">
+      <h3 class="sidebar-title">Markets</h3>
+      <ul class="market-list" id="market-list">
+        <li class="market-item skeleton"><span>S&amp;P 500</span><span>—</span></li>
+        <li class="market-item skeleton"><span>Nasdaq</span><span>—</span></li>
+        <li class="market-item skeleton"><span>Crude Oil</span><span>—</span></li>
+        <li class="market-item skeleton"><span>Bitcoin</span><span>—</span></li>
+      </ul>
+    </aside>
+
+    <!-- Main content -->
+    <main>
+      <section class="card" id="portfolio">
+        <h2>My Holdings</h2>
+        <div id="holdings-list"><p class="muted">Loading…</p></div>
+      </section>
+
+      <section class="card" id="add-holding">
+        <h2>Add Holding</h2>
+        <form id="holding-form">
+          <input type="text"   id="ticker"   placeholder="Ticker (e.g. AAPL)" required />
+          <input type="number" id="shares"   placeholder="Shares" step="any" min="0" required />
+          <input type="number" id="avg-cost" placeholder="Avg Cost ($)" step="any" min="0" required />
+          <button type="submit" class="primary-btn">Add</button>
+        </form>
+        <p id="form-error" class="form-error"></p>
+      </section>
+    </main>
+
+    <!-- Right sidebar: portfolio summary -->
+    <aside class="sidebar" id="portfolio-sidebar">
+      <h3 class="sidebar-title">Portfolio</h3>
+      <div id="portfolio-summary">
+        <div class="summary-total" id="summary-total">$—</div>
+        <div class="summary-change" id="summary-change"></div>
+      </div>
+      <ul class="mini-holdings" id="mini-holdings"></ul>
+      <button class="view-full-btn" id="view-full-btn">View Full Portfolio ↓</button>
+    </aside>
+
+  </div>
+
+  <!-- Ticker detail modal -->
+  <div id="ticker-modal" hidden>
+    <div class="modal-overlay" id="modal-overlay"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-ticker-name"></h2>
+        <button class="modal-close" id="modal-close">&times;</button>
+      </div>
+      <div id="modal-chart"></div>
+    </div>
+  </div>
+
+  <!-- Toast notifications -->
+  <div id="toast-container"></div>
 
   <script type="module" src="app.js"></script>
 </body>
