@@ -9,25 +9,30 @@
 <body>
   <header>
     <h1>CloudFolio</h1>
+    <button id="logout-btn" hidden>Logout</button>
   </header>
-
   <main>
-    <section id="portfolio">
-      <h2>My Holdings</h2>
-      <div id="holdings-list"></div>
+    <section id="auth-section">
+      <h2>Welcome to CloudFolio</h2>
+      <p>Track your stock portfolio with live prices.</p>
+      <button id="login-btn">Sign in with Google</button>
     </section>
-
-    <section id="add-holding">
-      <h2>Add Holding</h2>
-      <form id="holding-form">
-        <input type="text" id="ticker" placeholder="Ticker (e.g. AAPL)" required />
-        <input type="number" id="shares" placeholder="Shares" step="any" required />
-        <input type="number" id="avg-cost" placeholder="Avg Cost ($)" step="any" required />
-        <button type="submit">Add</button>
-      </form>
+    <section id="app-section" hidden>
+      <section id="portfolio">
+        <h2>My Holdings</h2>
+        <div id="holdings-list"></div>
+      </section>
+      <section id="add-holding">
+        <h2>Add Holding</h2>
+        <form id="holding-form">
+          <input type="text" id="ticker" placeholder="Ticker (e.g. AAPL)" required />
+          <input type="number" id="shares" placeholder="Shares" step="any" required />
+          <input type="number" id="avg-cost" placeholder="Avg Cost ($)" step="any" required />
+          <button type="submit">Add</button>
+        </form>
+      </section>
     </section>
   </main>
-
-  <script src="app.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
