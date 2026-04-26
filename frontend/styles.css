@@ -149,22 +149,15 @@ header h1 { font-size: 1.3rem; letter-spacing: 0.03em; }
 .view-full-btn {
   width: 100%;
   padding: 0.55rem;
-  background: #1a1a2e;
+  background: #f0f2f5;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.85rem;
   font-weight: 500;
-  color: #fff;
+  color: #1a1a2e;
 }
-.view-full-btn:hover { background: #2e2e5e; }
-
-@keyframes flash-border {
-  0%   { box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
-  40%  { box-shadow: 0 0 0 3px #4f46e5; }
-  100% { box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
-}
-.card.flash { animation: flash-border 0.9s ease; }
+.view-full-btn:hover { background: #e2e6ea; }
 
 /* ── Holdings table ────────────────────────────────────────────────────── */
 table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
@@ -315,57 +308,6 @@ tr:last-child td { border-bottom: none; }
 .toast.show { opacity: 1; transform: translateY(0); }
 .toast.success { background: #16a34a; }
 .toast.error   { background: #dc2626; }
-
-/* ── Portfolio page layout ─────────────────────────────────────────────── */
-.portfolio-layout {
-  max-width: 1000px;
-  margin: 1.5rem auto;
-  padding: 0 1.25rem;
-}
-
-/* ── Dashboard summary row ─────────────────────────────────────────────── */
-.summary-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  margin-bottom: 1.25rem;
-}
-
-.summary-card {
-  background: #fff;
-  border-radius: 10px;
-  padding: 1.1rem 1.25rem;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-}
-
-.summary-label {
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: #888;
-}
-
-.summary-value {
-  font-size: 1.4rem;
-  font-weight: 700;
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.back-link {
-  color: rgba(255,255,255,0.7);
-  text-decoration: none;
-  font-size: 0.9rem;
-}
-.back-link:hover { color: #fff; }
 
 /* ── Login page ────────────────────────────────────────────────────────── */
 body.login-page {

@@ -14,7 +14,7 @@
 
   <div class="app-layout">
 
-    <!-- Left: live market data -->
+    <!-- Left sidebar: live market data -->
     <aside class="sidebar" id="market-sidebar">
       <h3 class="sidebar-title">Markets</h3>
       <ul class="market-list" id="market-list">
@@ -25,22 +25,12 @@
       </ul>
     </aside>
 
-    <!-- Centre: summary + add form -->
+    <!-- Main content -->
     <main>
-      <div class="summary-row" id="summary-row">
-        <div class="summary-card">
-          <span class="summary-label">Total Value</span>
-          <span class="summary-value" id="summary-total">$—</span>
-        </div>
-        <div class="summary-card">
-          <span class="summary-label">Total Gain / Loss</span>
-          <span class="summary-value" id="summary-gain">—</span>
-        </div>
-        <div class="summary-card">
-          <span class="summary-label">Holdings</span>
-          <span class="summary-value" id="summary-count">—</span>
-        </div>
-      </div>
+      <section class="card" id="portfolio">
+        <h2>My Holdings</h2>
+        <div id="holdings-list"><p class="muted">Loading…</p></div>
+      </section>
 
       <section class="card" id="add-holding">
         <h2>Add Holding</h2>
@@ -54,17 +44,32 @@
       </section>
     </main>
 
-    <!-- Right: portfolio preview -->
+    <!-- Right sidebar: portfolio summary -->
     <aside class="sidebar" id="portfolio-sidebar">
-      <h3 class="sidebar-title">My Portfolio</h3>
-      <ul class="mini-holdings" id="mini-holdings">
-        <li class="muted" style="font-size:0.85rem">No holdings yet.</li>
-      </ul>
-      <a href="/portfolio.html" class="view-full-btn">View Full Portfolio →</a>
+      <h3 class="sidebar-title">Portfolio</h3>
+      <div id="portfolio-summary">
+        <div class="summary-total" id="summary-total">$—</div>
+        <div class="summary-change" id="summary-change"></div>
+      </div>
+      <ul class="mini-holdings" id="mini-holdings"></ul>
+      <button class="view-full-btn" id="view-full-btn">View Full Portfolio ↓</button>
     </aside>
 
   </div>
 
+  <!-- Ticker detail modal -->
+  <div id="ticker-modal" hidden>
+    <div class="modal-overlay" id="modal-overlay"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-ticker-name"></h2>
+        <button class="modal-close" id="modal-close">&times;</button>
+      </div>
+      <div id="modal-chart"></div>
+    </div>
+  </div>
+
+  <!-- Toast notifications -->
   <div id="toast-container"></div>
 
   <script type="module" src="app.js"></script>

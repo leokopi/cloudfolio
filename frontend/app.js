@@ -154,42 +154,30 @@ function renderHoldings(holdings) {
   );
 }
 
-// ── Portfolio sidebar / summary ───────────────────────────────────────────
+// ── Portfolio sidebar ─────────────────────────────────────────────────────
 function renderPortfolioSidebar(holdings) {
   const totalValue = holdings.reduce((sum, h) =>
     sum + Number(h.current_price ?? h.avg_cost) * Number(h.shares), 0);
   const totalCost = holdings.reduce((sum, h) =>
     sum + Number(h.avg_cost) * Number(h.shares), 0);
   const totalGain = totalValue - totalCost;
-  const gainCls  = totalGain >= 0 ? "gain" : "loss";
-  const gainSign = totalGain >= 0 ? "+" : "";
-  const fmt      = v => v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const gainCls   = totalGain >= 0 ? "gain" : "loss";
+  const gainSign  = totalGain >= 0 ? "+" : "";
 
-  // Dashboard summary row
-  const elTotal = document.getElementById("summary-total");
-  const elGain  = document.getElementById("summary-gain");
-  const elCount = document.getElementById("summary-count");
-  if (elTotal) elTotal.textContent = `$${fmt(totalValue)}`;
-  if (elGain) {
-    elGain.textContent  = `${gainSign}$${fmt(Math.abs(totalGain))}`;
-    elGain.className    = `summary-value ${gainCls}`;
-  }
-  if (elCount) elCount.textContent = holdings.length;
+  document.getElementById("summary-total").textContent = `$${totalValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const changeEl = document.getElementById("summary-change");
+  changeEl.textContent = `${gainSign}$${Math.abs(totalGain).toFixed(2)} total`;
+  changeEl.className = `summary-change ${gainCls}`;
 
-  // Dashboard mini holdings list
   const miniList = document.getElementById("mini-holdings");
-  if (miniList) {
-    miniList.innerHTML = holdings.length
-      ? holdings.slice(0, 6).map(h => {
-          const val   = Number(h.current_price ?? h.avg_cost) * Number(h.shares);
-          const alloc = totalValue > 0 ? ((val / totalValue) * 100).toFixed(1) : "0.0";
-          return `<li class="mini-holding">
-            <span class="ticker">${h.ticker}</span>
-            <span class="alloc">${alloc}%</span>
-          </li>`;
-        }).join("")
-      : `<li class="muted" style="font-size:0.85rem">No holdings yet.</li>`;
-  }
+  miniList.innerHTML = holdings.slice(0, 6).map(h => {
+    const val   = Number(h.current_price ?? h.avg_cost) * Number(h.shares);
+    const alloc = totalValue > 0 ? ((val / totalValue) * 100).toFixed(1) : "0.0";
+    return `<li class="mini-holding">
+      <span class="ticker">${h.ticker}</span>
+      <span class="alloc">${alloc}%</span>
+    </li>`;
+  }).join("");
 }
 
 // ── Ticker modal ──────────────────────────────────────────────────────────
@@ -215,9 +203,6 @@ async function loadMarket() {
     if (!res.ok) return;
     const { markets } = await res.json();
 
-    // Only update the DOM if we got a full set of results
-    if (!markets || markets.length < 4) return;
-
     const list = document.getElementById("market-list");
     list.innerHTML = markets.map(m => {
       const cls  = m.change_pct >= 0 ? "gain" : "loss";
@@ -240,47 +225,44 @@ async function loadMarket() {
 
 // ── Boot ──────────────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
+  if (!document.getElementById("holdings-list")) return;
+
   if (!getToken()) { globalThis.location.replace("/login.html"); return; }
 
   document.getElementById("logout-btn").addEventListener("click", logout);
+  document.getElementById("modal-close").addEventListener("click", closeTickerModal);
+  document.getElementById("modal-overlay").addEventListener("click", closeTickerModal);
+  document.getElementById("view-full-btn").addEventListener("click", () =>
+    document.getElementById("portfolio").scrollIntoView({ behavior: "smooth" })
+  );
 
-  // ── Dashboard (index.html) ──
-  if (document.getElementById("holding-form")) {
-    const form      = document.getElementById("holding-form");
-    const submitBtn = form.querySelector("button[type=submit]");
-    const errorMsg  = document.getElementById("form-error");
+  const form      = document.getElementById("holding-form");
+  const submitBtn = form.querySelector("button[type=submit]");
+  const errorMsg  = document.getElementById("form-error");
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const ticker   = document.getElementById("ticker").value.trim().toUpperCase();
-      const shares   = parseFloat(document.getElementById("shares").value);
-      const avg_cost = parseFloat(document.getElementById("avg-cost").value);
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const ticker   = document.getElementById("ticker").value.trim().toUpperCase();
+    const shares   = parseFloat(document.getElementById("shares").value);
+    const avg_cost = parseFloat(document.getElementById("avg-cost").value);
 
-      submitBtn.disabled = true;
-      submitBtn.textContent = "Adding…";
-      errorMsg.textContent = "";
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Adding…";
+    errorMsg.textContent = "";
 
-      try {
-        await addHolding(ticker, shares, avg_cost);
-        form.reset();
-      } catch (err) {
-        errorMsg.textContent = `Failed: ${err.message}`;
-        toast(`Failed to add holding: ${err.message}`, "error");
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = "Add";
-      }
-    });
+    try {
+      await addHolding(ticker, shares, avg_cost);
+      form.reset();
+    } catch (err) {
+      errorMsg.textContent = `Failed: ${err.message}`;
+      toast(`Failed to add holding: ${err.message}`, "error");
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Add";
+    }
+  });
 
-    loadPortfolio();
-    loadMarket();
-    setInterval(loadMarket, 120_000);
-  }
-
-  // ── Full portfolio page (portfolio.html) ──
-  if (document.getElementById("holdings-list")) {
-    document.getElementById("modal-close").addEventListener("click", closeTickerModal);
-    document.getElementById("modal-overlay").addEventListener("click", closeTickerModal);
-    loadPortfolio();
-  }
+  loadPortfolio();
+  loadMarket();
+  setInterval(loadMarket, 30_000);
 });
