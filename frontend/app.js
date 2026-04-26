@@ -142,6 +142,9 @@ function renderHoldings(holdings) {
 
 // ── Boot ──────────────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
+  // Only run on index.html — other pages import app.js for specific functions only
+  if (!document.getElementById("holdings-list")) return;
+
   if (!getToken()) {
     globalThis.location.replace("/login.html");
     return;
