@@ -286,6 +286,13 @@ tr:last-child td { border-bottom: none; }
 
 .modal-header h2 { font-size: 1.2rem; }
 
+.modal-price {
+  font-size: 1rem;
+  font-weight: 400;
+  color: #888;
+  margin-left: 0.5rem;
+}
+
 .modal-close {
   background: none;
   border: none;

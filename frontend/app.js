@@ -130,7 +130,7 @@ function renderHoldings(holdings) {
     const cls      = gainLoss >= 0 ? "gain" : "loss";
     const sign     = gainLoss >= 0 ? "+" : "";
     return `<tr>
-      <td><button class="ticker-btn" data-ticker="${h.ticker}">${h.ticker}</button></td>
+      <td><button class="ticker-btn" data-ticker="${h.ticker}" data-price="${price.toFixed(2)}">${h.ticker}</button></td>
       <td>${shares}</td>
       <td>$${cost.toFixed(2)}</td>
       <td>$${price.toFixed(2)}</td>
@@ -148,7 +148,7 @@ function renderHoldings(holdings) {
   </table>`;
 
   container.querySelectorAll(".ticker-btn").forEach(btn =>
-    btn.addEventListener("click", () => openTickerModal(btn.dataset.ticker))
+    btn.addEventListener("click", () => openTickerModal(btn.dataset.ticker, btn.dataset.price))
   );
 
   container.querySelectorAll(".delete-btn").forEach(btn =>
@@ -196,8 +196,11 @@ function renderPortfolioSidebar(holdings) {
 }
 
 // ── Ticker modal ──────────────────────────────────────────────────────────
-function openTickerModal(ticker) {
-  document.getElementById("modal-ticker-name").textContent = ticker;
+function openTickerModal(ticker, price) {
+  const header = document.getElementById("modal-ticker-name");
+  header.innerHTML = price
+    ? `${ticker} <span class="modal-price">$${Number(price).toFixed(2)}</span>`
+    : ticker;
   document.getElementById("modal-chart").innerHTML = `
     <iframe
       src="https://www.tradingview.com/widgetembed/?symbol=${encodeURIComponent(ticker)}&interval=D&theme=light&style=1&locale=en&toolbar_bg=%23ffffff&hide_top_toolbar=0&hide_legend=0&saveimage=0&show_popup_button=0"
@@ -356,6 +359,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("logout-btn")?.addEventListener("click", logout);
 
+  // ── Modal close (any page) ────────────────────────────────────────────
+  document.getElementById("modal-close")?.addEventListener("click", closeTickerModal);
+  document.getElementById("modal-overlay")?.addEventListener("click", closeTickerModal);
+
   // ── Ticker search (any page) ──────────────────────────────────────────
   document.getElementById("ticker-search-form")?.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -398,8 +405,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ── Portfolio page (portfolio.html) ───────────────────────────────────
   if (document.getElementById("hero-total")) {
-    document.getElementById("modal-close").addEventListener("click", closeTickerModal);
-    document.getElementById("modal-overlay").addEventListener("click", closeTickerModal);
     loadPortfolio();
   }
 
