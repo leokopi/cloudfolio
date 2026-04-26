@@ -1,8 +1,8 @@
 // ── Config (fill after `sam deploy` / CloudFormation outputs) ──────────────
 const CONFIG = {
-  apiBase:        "https://cdsyovnqe1.execute-api.us-east-2.amazonaws.com/prod",        // ApiUrl output
-  cognitoDomain:  "https://cloudfolio-594552272210.auth.us-east-2.amazoncognito.com",         // CognitoDomain output
-  clientId:       "527u7m32ksf3skood9gcegcft9",      // CognitoClientId output
+  apiBase:        "YOUR_API_GATEWAY_URL",        // ApiUrl output
+  cognitoDomain:  "YOUR_COGNITO_DOMAIN",         // CognitoDomain output
+  clientId:       "YOUR_COGNITO_CLIENT_ID",      // CognitoClientId output
   redirectUri:    globalThis.location.origin + "/callback.html",
 };
 
@@ -156,6 +156,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (getToken()) {
     document.getElementById("auth-section").hidden = true;
     document.getElementById("app-section").hidden = false;
+    document.getElementById("logout-btn").hidden = false;
     loadPortfolio();
   } else {
     document.getElementById("auth-section").hidden = false;
