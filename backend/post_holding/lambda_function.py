@@ -25,6 +25,8 @@ def fetch_price(ticker):
 
 
 def lambda_handler(event, context):
+    user_id = event["requestContext"]["authorizer"]["claims"]["sub"]
+
     body = json.loads(event.get("body", "{}"))
     ticker = body.get("ticker", "").upper().strip()
     shares = body.get("shares")
@@ -45,6 +47,7 @@ def lambda_handler(event, context):
 
     item = {
         "id": str(uuid.uuid4()),
+        "user_id": user_id,
         "ticker": ticker,
         "shares": Decimal(str(shares)),
         "avg_cost": Decimal(str(avg_cost)),

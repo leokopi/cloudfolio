@@ -2,6 +2,7 @@ import json
 import boto3
 import os
 from decimal import Decimal
+from boto3.dynamodb.conditions import Attr
 
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table(os.environ["HOLDINGS_TABLE"])
@@ -14,7 +15,9 @@ def decimal_default(obj):
 
 
 def lambda_handler(event, context):
-    result = table.scan()
+    user_id = event["requestContext"]["authorizer"]["claims"]["sub"]
+
+    result = table.scan(FilterExpression=Attr("user_id").eq(user_id))
     holdings = result.get("Items", [])
 
     return {
