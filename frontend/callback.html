@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Signing in…</title>
+</head>
+<body>
+  <p>Signing you in…</p>
+  <script type="module">
+    import { handleCallback } from "./app.js";
+    const ok = await handleCallback();
+    if (ok) {
+      window.location.href = "/";
+    } else {
+      document.body.innerHTML = "<p>Login failed. <a href='/'>Try again</a></p>";
+    }
+  </script>
+</body>
+</html>
