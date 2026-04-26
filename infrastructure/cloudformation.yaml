@@ -182,6 +182,7 @@ Resources:
       Environment:
         Variables:
           HOLDINGS_TABLE: !Ref HoldingsTable
+          POLYGON_API_KEY: !Ref PolygonApiKey
 
   GetPricesFunction:
     Type: AWS::Lambda::Function
