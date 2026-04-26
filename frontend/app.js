@@ -350,6 +350,8 @@ function renderNetworth(items) {
 
 // ── Boot ──────────────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
+  const path = globalThis.location.pathname;
+  if (path.endsWith("/login.html") || path.endsWith("/callback.html")) return;
   if (!getToken()) { globalThis.location.replace("/login.html"); return; }
 
   document.getElementById("logout-btn")?.addEventListener("click", logout);
