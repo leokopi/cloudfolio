@@ -46,6 +46,12 @@ jobs:
               GoogleClientSecret=${{ secrets.GOOGLE_CLIENT_SECRET }} \
               PolygonApiKey=${{ secrets.POLYGON_API_KEY }}
 
+      - name: Redeploy API Gateway stage
+        run: |
+          aws apigateway create-deployment \
+            --rest-api-id cdsyovnqe1 \
+            --stage-name prod
+
       - name: Update Lambda function code
         run: |
           for func in get_portfolio post_holding get_prices delete_holding get_market; do
