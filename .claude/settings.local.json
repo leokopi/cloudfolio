@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C /Users/leokopicko/Desktop/personal/CloudFolio/cloudfolio status)",
+      "Bash(mv /Users/leokopicko/Desktop/personal/CloudFolio/cloudfolio/.git /Users/leokopicko/Desktop/personal/CloudFolio/.git)",
+      "Bash(git -C /Users/leokopicko/Desktop/personal/CloudFolio status)",
+      "Bash(git -C /Users/leokopicko/Desktop/personal/CloudFolio log --oneline -5)",
+      "Bash(git -C /Users/leokopicko/Desktop/personal/CloudFolio diff HEAD -- frontend/index.html)",
+      "Bash(git -C /Users/leokopicko/Desktop/personal/CloudFolio remote -v)"
+    ]
+  }
+}
