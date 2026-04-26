@@ -115,6 +115,8 @@ export async function deleteHolding(id, ticker) {
 // ── Render holdings ───────────────────────────────────────────────────────
 function renderHoldings(holdings) {
   const container = document.getElementById("holdings-list");
+  if (!container) return;
+
   if (!holdings.length) {
     container.innerHTML = "<p class=\"muted\">No holdings yet. Add one below.</p>";
     return;
@@ -165,7 +167,6 @@ function renderPortfolioSidebar(holdings) {
   const gainSign = totalGain >= 0 ? "+" : "";
   const fmt      = v => v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-  // Dashboard sidebar
   const elTotal  = document.getElementById("summary-total");
   const elChange = document.getElementById("summary-change");
   if (elTotal)  elTotal.textContent = `$${fmt(totalValue)}`;
@@ -185,7 +186,6 @@ function renderPortfolioSidebar(holdings) {
     }).join("");
   }
 
-  // Portfolio page hero
   const elHeroTotal  = document.getElementById("hero-total");
   const elHeroChange = document.getElementById("hero-change");
   if (elHeroTotal)  elHeroTotal.textContent = `$${fmt(totalValue)}`;
@@ -238,6 +238,114 @@ async function loadMarket() {
   }
 }
 
+// ── Net Worth ─────────────────────────────────────────────────────────────
+let cachedNetworthItems = [];
+
+export async function loadNetworth() {
+  const res = await fetch(`${CONFIG.apiBase}/networth`, { headers: authHeaders() });
+  if (res.status === 401) { login(); return; }
+  const data = await res.json();
+  cachedNetworthItems = data.items || [];
+  renderNetworth(cachedNetworthItems);
+}
+
+export async function addNetworthItem(name, type, value) {
+  const res = await fetch(`${CONFIG.apiBase}/networth/item`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({ name, type, value }),
+  });
+  if (!res.ok) throw new Error(`API error ${res.status}`);
+  await loadNetworth();
+  toast(`${name} added`);
+}
+
+export async function deleteNetworthItem(id, name) {
+  const res = await fetch(`${CONFIG.apiBase}/networth/item/${id}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error(`API error ${res.status}`);
+  await loadNetworth();
+  toast(`${name} removed`, "error");
+}
+
+function renderNetworth(items) {
+  const fmt = v => v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  const assets      = items.filter(i => i.type === "asset");
+  const liabilities = items.filter(i => i.type === "liability");
+
+  const portfolioValue  = cachedHoldings.reduce((sum, h) =>
+    sum + Number(h.current_price ?? h.avg_cost) * Number(h.shares), 0);
+  const manualAssets    = assets.reduce((sum, i) => sum + Number(i.value), 0);
+  const totalLiabilities = liabilities.reduce((sum, i) => sum + Number(i.value), 0);
+  const totalAssets     = portfolioValue + manualAssets;
+  const netWorth        = totalAssets - totalLiabilities;
+  const nwCls           = netWorth >= 0 ? "gain" : "loss";
+
+  // Dashboard sidebar mini
+  const elMini = document.getElementById("networth-total");
+  if (elMini) {
+    elMini.textContent  = `$${fmt(netWorth)}`;
+    elMini.className    = `summary-total ${nwCls}`;
+  }
+
+  // Net worth page hero
+  const elHero = document.getElementById("networth-hero-total");
+  const elSub  = document.getElementById("networth-hero-sub");
+  if (elHero) {
+    elHero.textContent = `$${fmt(netWorth)}`;
+    elHero.className   = `hero-total ${nwCls}`;
+  }
+  if (elSub) {
+    elSub.textContent = `$${fmt(totalAssets)} assets · $${fmt(totalLiabilities)} liabilities`;
+  }
+
+  // Assets list (portfolio row auto-included)
+  const assetsList = document.getElementById("assets-list");
+  if (assetsList) {
+    const portfolioRow = `<tr>
+      <td>Investment Portfolio</td>
+      <td class="gain">+$${fmt(portfolioValue)}</td>
+      <td></td>
+    </tr>`;
+    const rows = assets.map(i => `<tr>
+      <td>${i.name}</td>
+      <td>+$${fmt(Number(i.value))}</td>
+      <td><button class="delete-btn" data-id="${i.id}" data-name="${i.name}">Remove</button></td>
+    </tr>`).join("");
+    assetsList.innerHTML = `<table>
+      <thead><tr><th>Name</th><th>Value</th><th></th></tr></thead>
+      <tbody>${portfolioRow}${rows}</tbody>
+    </table>`;
+    assetsList.querySelectorAll(".delete-btn").forEach(btn =>
+      btn.addEventListener("click", () => deleteNetworthItem(btn.dataset.id, btn.dataset.name))
+    );
+  }
+
+  // Liabilities list
+  const liabList = document.getElementById("liabilities-list");
+  if (liabList) {
+    if (!liabilities.length) {
+      liabList.innerHTML = "<p class=\"muted\">No liabilities added yet.</p>";
+    } else {
+      const rows = liabilities.map(i => `<tr>
+        <td>${i.name}</td>
+        <td class="loss">-$${fmt(Number(i.value))}</td>
+        <td><button class="delete-btn" data-id="${i.id}" data-name="${i.name}">Remove</button></td>
+      </tr>`).join("");
+      liabList.innerHTML = `<table>
+        <thead><tr><th>Name</th><th>Value</th><th></th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+      liabList.querySelectorAll(".delete-btn").forEach(btn =>
+        btn.addEventListener("click", () => deleteNetworthItem(btn.dataset.id, btn.dataset.name))
+      );
+    }
+  }
+}
+
 // ── Boot ──────────────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
   if (!getToken()) { globalThis.location.replace("/login.html"); return; }
@@ -272,7 +380,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    loadPortfolio();
+    loadPortfolio().then(() => loadNetworth().catch(console.error));
     loadMarket();
     setInterval(loadMarket, 120_000);
   }
@@ -282,5 +390,36 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("modal-close").addEventListener("click", closeTickerModal);
     document.getElementById("modal-overlay").addEventListener("click", closeTickerModal);
     loadPortfolio();
+  }
+
+  // ── Net Worth page (networth.html) ────────────────────────────────────
+  if (document.getElementById("networth-hero-total")) {
+    const form     = document.getElementById("networth-form");
+    const errorMsg = document.getElementById("nw-form-error");
+    const submitBtn = form.querySelector("button[type=submit]");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name  = document.getElementById("nw-name").value.trim();
+      const type  = document.getElementById("nw-type").value;
+      const value = parseFloat(document.getElementById("nw-value").value);
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Adding…";
+      errorMsg.textContent = "";
+
+      try {
+        await addNetworthItem(name, type, value);
+        form.reset();
+      } catch (err) {
+        errorMsg.textContent = `Failed: ${err.message}`;
+        toast(`Failed to add item: ${err.message}`, "error");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Add";
+      }
+    });
+
+    loadPortfolio().then(() => loadNetworth().catch(console.error));
   }
 });

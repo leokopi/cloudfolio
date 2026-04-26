@@ -49,7 +49,7 @@ header h1 { font-size: 1.3rem; letter-spacing: 0.03em; }
 
 @media (max-width: 1024px) {
   .app-layout { grid-template-columns: 1fr; }
-  #market-sidebar, #portfolio-sidebar { display: none; }
+  #left-col, #market-sidebar, #portfolio-sidebar { display: none; }
 }
 
 /* ── Cards ─────────────────────────────────────────────────────────────── */
@@ -78,6 +78,7 @@ header h1 { font-size: 1.3rem; letter-spacing: 0.03em; }
   box-shadow: 0 1px 4px rgba(0,0,0,0.07);
   position: sticky;
   top: 70px;
+  align-self: start;
 }
 
 .sidebar-title {
@@ -360,6 +361,46 @@ body.login-page {
   font-size: 0.88rem;
 }
 .back-link:hover { color: #fff; }
+
+/* ── Left column wrapper ────────────────────────────────────────────────── */
+#left-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  align-self: start;
+  position: sticky;
+  top: 70px;
+}
+
+#left-col .sidebar {
+  position: static;
+}
+
+.nw-btn {
+  margin-top: 0.75rem;
+  display: block;
+}
+
+/* ── Net Worth form ─────────────────────────────────────────────────────── */
+#networth-form {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+#networth-form input,
+#networth-form select {
+  flex: 1;
+  min-width: 110px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.92rem;
+  outline: none;
+  background: #fff;
+}
+#networth-form input:focus,
+#networth-form select:focus { border-color: #1a1a2e; }
 
 /* ── Login page ─────────────────────────────────────────────────────────── */
 .login-card {

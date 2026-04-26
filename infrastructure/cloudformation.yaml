@@ -124,6 +124,18 @@ Resources:
         - AttributeName: id
           KeyType: HASH
 
+  NetworthTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: cloudfolio-networth
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+
   # ── Lambda IAM Role ───────────────────────────────────────────────────────
   LambdaRole:
     Type: AWS::IAM::Role
@@ -150,7 +162,9 @@ Resources:
                   - dynamodb:UpdateItem
                   - dynamodb:DeleteItem
                   - dynamodb:Scan
-                Resource: !GetAtt HoldingsTable.Arn
+                Resource:
+                  - !GetAtt HoldingsTable.Arn
+                  - !GetAtt NetworthTable.Arn
 
   # ── Lambda Functions ──────────────────────────────────────────────────────
   GetPortfolioFunction:
@@ -230,6 +244,51 @@ Resources:
         Variables:
           POLYGON_API_KEY: !Ref PolygonApiKey
 
+  GetNetworthFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: cloudfolio-get-networth
+      Runtime: python3.12
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt LambdaRole.Arn
+      Code:
+        ZipFile: |
+          def lambda_handler(event, context):
+              return {"statusCode": 200, "body": "placeholder"}
+      Environment:
+        Variables:
+          NETWORTH_TABLE: !Ref NetworthTable
+
+  PostNetworthItemFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: cloudfolio-post-networth-item
+      Runtime: python3.12
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt LambdaRole.Arn
+      Code:
+        ZipFile: |
+          def lambda_handler(event, context):
+              return {"statusCode": 200, "body": "placeholder"}
+      Environment:
+        Variables:
+          NETWORTH_TABLE: !Ref NetworthTable
+
+  DeleteNetworthItemFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: cloudfolio-delete-networth-item
+      Runtime: python3.12
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt LambdaRole.Arn
+      Code:
+        ZipFile: |
+          def lambda_handler(event, context):
+              return {"statusCode": 200, "body": "placeholder"}
+      Environment:
+        Variables:
+          NETWORTH_TABLE: !Ref NetworthTable
+
   # ── API Gateway ───────────────────────────────────────────────────────────
   Api:
     Type: AWS::ApiGateway::RestApi
@@ -281,7 +340,28 @@ Resources:
       ParentId: !GetAtt Api.RootResourceId
       PathPart: market
 
-  # CORS preflight — OPTIONS methods (no auth, mock integration)
+  NetworthResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref Api
+      ParentId: !GetAtt Api.RootResourceId
+      PathPart: networth
+
+  NetworthItemResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref Api
+      ParentId: !Ref NetworthResource
+      PathPart: item
+
+  NetworthItemIdResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref Api
+      ParentId: !Ref NetworthItemResource
+      PathPart: "{id}"
+
+  # CORS preflight — existing routes
   PortfolioOptionsMethod:
     Type: AWS::ApiGateway::Method
     Properties:
@@ -402,6 +482,80 @@ Resources:
             method.response.header.Access-Control-Allow-Methods: true
             method.response.header.Access-Control-Allow-Origin: true
 
+  # CORS preflight — net worth routes
+  NetworthOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref Api
+      ResourceId: !Ref NetworthResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+
+  NetworthItemOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref Api
+      ResourceId: !Ref NetworthItemResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+
+  NetworthItemIdOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref Api
+      ResourceId: !Ref NetworthItemIdResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+              method.response.header.Access-Control-Allow-Methods: "'DELETE,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+
+  # Authenticated methods — existing
   GetPortfolioMethod:
     Type: AWS::ApiGateway::Method
     Properties:
@@ -477,6 +631,53 @@ Resources:
           - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${Arn}/invocations
           - Arn: !GetAtt GetPricesFunction.Arn
 
+  # Authenticated methods — net worth
+  GetNetworthMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref Api
+      ResourceId: !Ref NetworthResource
+      HttpMethod: GET
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${Arn}/invocations
+          - Arn: !GetAtt GetNetworthFunction.Arn
+
+  PostNetworthItemMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref Api
+      ResourceId: !Ref NetworthItemResource
+      HttpMethod: POST
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${Arn}/invocations
+          - Arn: !GetAtt PostNetworthItemFunction.Arn
+
+  DeleteNetworthItemMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref Api
+      ResourceId: !Ref NetworthItemIdResource
+      HttpMethod: DELETE
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${Arn}/invocations
+          - Arn: !GetAtt DeleteNetworthItemFunction.Arn
+
+  # Lambda invoke permissions
   GetPortfolioPermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -517,6 +718,30 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/*
 
+  GetNetworthPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref GetNetworthFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/*
+
+  PostNetworthItemPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref PostNetworthItemFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/*
+
+  DeleteNetworthItemPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref DeleteNetworthItemFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/*
+
   ApiDeployment:
     Type: AWS::ApiGateway::Deployment
     DependsOn:
@@ -530,6 +755,12 @@ Resources:
       - PricesOptionsMethod
       - MarketOptionsMethod
       - GetMarketMethod
+      - GetNetworthMethod
+      - PostNetworthItemMethod
+      - DeleteNetworthItemMethod
+      - NetworthOptionsMethod
+      - NetworthItemOptionsMethod
+      - NetworthItemIdOptionsMethod
     Properties:
       RestApiId: !Ref Api
       StageName: prod

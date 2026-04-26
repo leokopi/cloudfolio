@@ -26,7 +26,7 @@ jobs:
 
       - name: Package and upload Lambda zips
         run: |
-          for func in get_portfolio post_holding get_prices delete_holding get_market; do
+          for func in get_portfolio post_holding get_prices delete_holding get_market get_networth post_networth_item delete_networth_item; do
             cd backend/$func
             zip -j ../../$func.zip lambda_function.py
             cd ../..
@@ -54,12 +54,16 @@ jobs:
 
       - name: Update Lambda function code
         run: |
-          for func in get_portfolio post_holding get_prices delete_holding get_market; do
+          for func in get_portfolio post_holding get_prices delete_holding get_market get_networth post_networth_item delete_networth_item; do
             fn_name="cloudfolio-${func//_/-}"
-            aws lambda update-function-code \
-              --function-name $fn_name \
-              --s3-bucket ${{ secrets.DEPLOY_BUCKET }} \
-              --s3-key $func.zip
+            if aws lambda get-function --function-name $fn_name 2>/dev/null; then
+              aws lambda update-function-code \
+                --function-name $fn_name \
+                --s3-bucket ${{ secrets.DEPLOY_BUCKET }} \
+                --s3-key $func.zip
+            else
+              echo "Lambda $fn_name not yet created by CloudFormation, skipping"
+            fi
           done
 
       - name: Sync frontend to S3

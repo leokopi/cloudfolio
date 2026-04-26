@@ -14,16 +14,24 @@
 
   <div class="app-layout">
 
-    <!-- Left sidebar: live market data -->
-    <aside class="sidebar" id="market-sidebar">
-      <h3 class="sidebar-title">Markets</h3>
-      <ul class="market-list" id="market-list">
-        <li class="market-item skeleton"><span>S&amp;P 500</span><span>—</span></li>
-        <li class="market-item skeleton"><span>Nasdaq</span><span>—</span></li>
-        <li class="market-item skeleton"><span>Crude Oil</span><span>—</span></li>
-        <li class="market-item skeleton"><span>Bitcoin</span><span>—</span></li>
-      </ul>
-    </aside>
+    <!-- Left column: markets + net worth -->
+    <div id="left-col">
+      <aside class="sidebar" id="market-sidebar">
+        <h3 class="sidebar-title">Markets</h3>
+        <ul class="market-list" id="market-list">
+          <li class="market-item skeleton"><span>S&amp;P 500</span><span>—</span></li>
+          <li class="market-item skeleton"><span>Nasdaq</span><span>—</span></li>
+          <li class="market-item skeleton"><span>Crude Oil</span><span>—</span></li>
+          <li class="market-item skeleton"><span>Bitcoin</span><span>—</span></li>
+        </ul>
+      </aside>
+
+      <div class="sidebar" id="networth-sidebar">
+        <h3 class="sidebar-title">Net Worth</h3>
+        <div class="summary-total" id="networth-total">$—</div>
+        <a href="/networth.html" class="view-full-btn nw-btn">View Details →</a>
+      </div>
+    </div>
 
     <!-- Main content -->
     <main>
