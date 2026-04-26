@@ -218,6 +218,8 @@ async function loadMarket() {
     if (!res.ok) return;
     const { markets } = await res.json();
 
+    if (!markets || markets.length < 4) return;
+
     const list = document.getElementById("market-list");
     list.innerHTML = markets.map(m => {
       const cls  = m.change_pct >= 0 ? "gain" : "loss";
