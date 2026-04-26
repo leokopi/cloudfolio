@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CloudFolio — Portfolio</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <a href="/" class="back-link">← Dashboard</a>
+      <h1>My Portfolio</h1>
+    </div>
+    <button id="logout-btn">Sign out</button>
+  </header>
+
+  <div class="portfolio-layout">
+    <main>
+      <section class="card">
+        <div id="holdings-list"><p class="muted">Loading…</p></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Ticker detail modal -->
+  <div id="ticker-modal" hidden>
+    <div class="modal-overlay" id="modal-overlay"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-ticker-name"></h2>
+        <button class="modal-close" id="modal-close">&times;</button>
+      </div>
+      <div id="modal-chart"></div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

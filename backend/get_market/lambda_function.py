@@ -1,15 +1,21 @@
 import json
 import urllib.request
 import os
+import time
 
 POLYGON_API_KEY = os.environ["POLYGON_API_KEY"]
 
 TICKERS = {
-    "SPY":    "S&P 500",
-    "QQQ":    "Nasdaq",
-    "USO":    "Crude Oil",
+    "SPY":      "S&P 500",
+    "QQQ":      "Nasdaq",
+    "USO":      "Crude Oil",
     "X:BTCUSD": "Bitcoin",
 }
+
+# Module-level cache — persists across warm Lambda invocations
+_cache = None
+_cache_ts = 0
+CACHE_TTL = 300  # seconds
 
 
 def fetch_prev(ticker):
@@ -23,15 +29,21 @@ def fetch_prev(ticker):
     if not results:
         raise ValueError(f"No data for {ticker}")
     r = results[0]
-    close = r["c"]
-    open_ = r["o"]
-    change_pct = round(((close - open_) / open_) * 100, 2) if open_ else 0
-    return close, change_pct
+    change_pct = round(((r["c"] - r["o"]) / r["o"]) * 100, 2) if r["o"] else 0
+    return r["c"], change_pct
 
 
 def lambda_handler(event, context):
-    markets = []
+    global _cache, _cache_ts
 
+    if _cache and (time.time() - _cache_ts) < CACHE_TTL:
+        return {
+            "statusCode": 200,
+            "headers": {"Access-Control-Allow-Origin": "*"},
+            "body": json.dumps({"markets": _cache}),
+        }
+
+    markets = []
     for ticker, name in TICKERS.items():
         try:
             price, change_pct = fetch_prev(ticker)
@@ -44,6 +56,10 @@ def lambda_handler(event, context):
             })
         except Exception as e:
             print(f"Error fetching {ticker}: {e}")
+
+    if len(markets) == len(TICKERS):
+        _cache = markets
+        _cache_ts = time.time()
 
     return {
         "statusCode": 200,
