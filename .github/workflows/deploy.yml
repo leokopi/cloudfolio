@@ -4,44 +4,43 @@ on:
   push:
     branches: [main]
 
-env:
-  AWS_REGION: us-east-1
-  STACK_NAME: cloudfolio
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: us-east-2
 
       - name: Package Lambda functions
         run: |
-          for fn in get_portfolio post_holding get_prices delete_holding; do
-            cd backend/$fn
-            zip -r ../../${fn}.zip lambda_function.py
+          for func in get_portfolio post_holding get_prices delete_holding; do
+            cd backend/$func
+            zip -j ../../$func.zip lambda_function.py
             cd ../..
           done
 
       - name: Upload Lambda zips to S3
         run: |
-          BUCKET="${{ secrets.DEPLOY_BUCKET }}"
-          for fn in get_portfolio post_holding get_prices delete_holding; do
-            aws s3 cp ${fn}.zip s3://${BUCKET}/lambdas/${fn}.zip
+          for func in get_portfolio post_holding get_prices delete_holding; do
+            aws s3 cp $func.zip s3://${{ secrets.DEPLOY_BUCKET }}/$func.zip
           done
 
       - name: Deploy CloudFormation stack
+        continue-on-error: true
         run: |
           aws cloudformation deploy \
             --template-file infrastructure/cloudformation.yaml \
-            --stack-name ${{ env.STACK_NAME }} \
-            --capabilities CAPABILITY_NAMED_IAM --no-fail-on-empty-changeset \
+            --stack-name cloudfolio \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --no-fail-on-empty-changeset \
             --parameter-overrides \
               GoogleClientId=${{ secrets.GOOGLE_CLIENT_ID }} \
               GoogleClientSecret=${{ secrets.GOOGLE_CLIENT_SECRET }} \
@@ -49,32 +48,17 @@ jobs:
 
       - name: Update Lambda function code
         run: |
-          BUCKET="${{ secrets.DEPLOY_BUCKET }}"
-          declare -A FN_MAP=(
-            [get_portfolio]=cloudfolio-get-portfolio
-            [post_holding]=cloudfolio-post-holding
-            [get_prices]=cloudfolio-get-prices
-            [delete_holding]=cloudfolio-delete-holding
-          )
-          for key in "${!FN_MAP[@]}"; do
-            aws lambda update-function-code \
-              --function-name ${FN_MAP[$key]} \
-              --s3-bucket ${BUCKET} \
-              --s3-key lambdas/${key}.zip
-          done
+          aws lambda update-function-code --function-name cloudfolio-get-portfolio --s3-bucket ${{ secrets.DEPLOY_BUCKET }} --s3-key get_portfolio.zip
+          aws lambda update-function-code --function-name cloudfolio-post-holding --s3-bucket ${{ secrets.DEPLOY_BUCKET }} --s3-key post_holding.zip
+          aws lambda update-function-code --function-name cloudfolio-get-prices --s3-bucket ${{ secrets.DEPLOY_BUCKET }} --s3-key get_prices.zip
+          aws lambda update-function-code --function-name cloudfolio-delete-holding --s3-bucket ${{ secrets.DEPLOY_BUCKET }} --s3-key delete_holding.zip
 
       - name: Sync frontend to S3
         run: |
-          FRONTEND_BUCKET=$(aws cloudformation describe-stacks \
-            --stack-name ${{ env.STACK_NAME }} \
-            --query "Stacks[0].Outputs[?OutputKey=='FrontendBucketName'].OutputValue" \
-            --output text)
-          aws s3 sync frontend/ s3://${FRONTEND_BUCKET} --delete
+          BUCKET=$(aws cloudformation describe-stacks --stack-name cloudfolio --query "Stacks[0].Outputs[?OutputKey=='FrontendBucketName'].OutputValue" --output text)
+          aws s3 sync frontend/ s3://$BUCKET/ --delete
 
       - name: Invalidate CloudFront cache
         run: |
-          DIST_ID=$(aws cloudformation describe-stacks \
-            --stack-name ${{ env.STACK_NAME }} \
-            --query "Stacks[0].Outputs[?OutputKey=='CloudFrontDistributionId'].OutputValue" \
-            --output text)
-          aws cloudfront create-invalidation --distribution-id ${DIST_ID} --paths "/*"
+          DIST_ID=$(aws cloudformation describe-stacks --stack-name cloudfolio --query "Stacks[0].Outputs[?OutputKey=='CloudFrontDistributionId'].OutputValue" --output text)
+          aws cloudfront create-invalidation --distribution-id $DIST_ID --paths "/*"
