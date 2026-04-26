@@ -41,7 +41,7 @@ jobs:
           aws cloudformation deploy \
             --template-file infrastructure/cloudformation.yaml \
             --stack-name ${{ env.STACK_NAME }} \
-            --capabilities CAPABILITY_NAMED_IAM \
+            --capabilities CAPABILITY_NAMED_IAM --no-fail-on-empty-changeset \
             --parameter-overrides \
               GoogleClientId=${{ secrets.GOOGLE_CLIENT_ID }} \
               GoogleClientSecret=${{ secrets.GOOGLE_CLIENT_SECRET }} \
