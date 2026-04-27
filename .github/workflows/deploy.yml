@@ -26,7 +26,7 @@ jobs:
 
       - name: Lint Lambda functions
         run: |
-          for func in get_portfolio post_holding get_prices delete_holding get_market get_networth post_networth_item delete_networth_item; do
+          for func in get_portfolio post_holding get_prices delete_holding get_market get_networth post_networth_item delete_networth_item get_watchlist post_watchlist_item delete_watchlist_item; do
             python -m py_compile backend/$func/lambda_function.py
             echo "$func OK"
           done
@@ -38,7 +38,7 @@ jobs:
 
       - name: Package and upload Lambda zips
         run: |
-          for func in get_portfolio post_holding get_prices delete_holding get_market get_networth post_networth_item delete_networth_item; do
+          for func in get_portfolio post_holding get_prices delete_holding get_market get_networth post_networth_item delete_networth_item get_watchlist post_watchlist_item delete_watchlist_item; do
             cd backend/$func
             zip -j ../../$func.zip lambda_function.py
             cd ../..
@@ -66,7 +66,7 @@ jobs:
 
       - name: Update Lambda function code
         run: |
-          for func in get_portfolio post_holding get_prices delete_holding get_market get_networth post_networth_item delete_networth_item; do
+          for func in get_portfolio post_holding get_prices delete_holding get_market get_networth post_networth_item delete_networth_item get_watchlist post_watchlist_item delete_watchlist_item; do
             fn_name="cloudfolio-${func//_/-}"
             if aws lambda get-function --function-name $fn_name 2>/dev/null; then
               aws lambda update-function-code \

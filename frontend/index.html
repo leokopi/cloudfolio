@@ -60,16 +60,27 @@
       </section>
     </main>
 
-    <!-- Right sidebar: portfolio summary -->
-    <aside class="sidebar" id="portfolio-sidebar">
-      <h3 class="sidebar-title">Portfolio</h3>
-      <div id="portfolio-summary">
-        <div class="summary-total" id="summary-total">$—</div>
-        <div class="summary-change" id="summary-change"></div>
+    <!-- Right column: portfolio summary + watchlist -->
+    <div id="right-col">
+      <aside class="sidebar" id="portfolio-sidebar">
+        <h3 class="sidebar-title">Portfolio</h3>
+        <div id="portfolio-summary">
+          <div class="summary-total" id="summary-total">$—</div>
+          <div class="summary-change" id="summary-change"></div>
+        </div>
+        <ul class="mini-holdings" id="mini-holdings"></ul>
+        <a href="/portfolio.html" class="view-full-btn">My Portfolio →</a>
+      </aside>
+
+      <div class="sidebar" id="watchlist-sidebar">
+        <h3 class="sidebar-title">Watchlist</h3>
+        <ul class="watchlist-list" id="watchlist-items"></ul>
+        <form id="watchlist-form" class="watchlist-add-form">
+          <input id="watchlist-input" type="text" placeholder="Add ticker…" />
+          <button type="submit" class="watchlist-add-btn">+</button>
+        </form>
       </div>
-      <ul class="mini-holdings" id="mini-holdings"></ul>
-      <a href="/portfolio.html" class="view-full-btn">My Portfolio →</a>
-    </aside>
+    </div>
 
   </div>
 

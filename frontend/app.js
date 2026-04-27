@@ -351,6 +351,71 @@ function renderNetworth(items) {
   }
 }
 
+// ── Watchlist ─────────────────────────────────────────────────────────────
+export async function loadWatchlist() {
+  const res = await fetch(`${CONFIG.apiBase}/watchlist`, { headers: authHeaders() });
+  if (res.status === 401) { login(); return; }
+  const data = await res.json();
+  renderWatchlist(data.items || []);
+}
+
+export async function addWatchlistItem(ticker) {
+  const res = await fetch(`${CONFIG.apiBase}/watchlist/item`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({ ticker }),
+  });
+  if (!res.ok) throw new Error(`API error ${res.status}`);
+  await loadWatchlist();
+  toast(`${ticker} added to watchlist`);
+}
+
+export async function deleteWatchlistItem(id, ticker) {
+  const res = await fetch(`${CONFIG.apiBase}/watchlist/item/${id}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error(`API error ${res.status}`);
+  await loadWatchlist();
+  toast(`${ticker} removed from watchlist`, "error");
+}
+
+function renderWatchlist(items) {
+  const list = document.getElementById("watchlist-items");
+  if (!list) return;
+
+  if (!items.length) {
+    list.innerHTML = "<li class='watchlist-empty'>No tickers yet</li>";
+    return;
+  }
+
+  list.innerHTML = items.map(item => {
+    const price = item.price != null
+      ? `$${Number(item.price).toFixed(2)}`
+      : "—";
+    const changeCls  = item.change_pct >= 0 ? "gain" : "loss";
+    const changeSign = item.change_pct >= 0 ? "+" : "";
+    const change = item.change_pct != null
+      ? `<span class="market-pct ${changeCls}">${changeSign}${item.change_pct}%</span>`
+      : "";
+    return `<li class="watchlist-item">
+      <button class="ticker-btn" data-ticker="${item.ticker}" data-price="${item.price ?? ""}">${item.ticker}</button>
+      <div class="watchlist-right">
+        <span class="market-price">${price}</span>
+        ${change}
+      </div>
+      <button class="watchlist-remove" data-id="${item.id}" data-ticker="${item.ticker}">×</button>
+    </li>`;
+  }).join("");
+
+  list.querySelectorAll(".ticker-btn").forEach(btn =>
+    btn.addEventListener("click", () => openTickerModal(btn.dataset.ticker, btn.dataset.price || undefined))
+  );
+  list.querySelectorAll(".watchlist-remove").forEach(btn =>
+    btn.addEventListener("click", () => deleteWatchlistItem(btn.dataset.id, btn.dataset.ticker))
+  );
+}
+
 // ── Boot ──────────────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
   const path = globalThis.location.pathname;
@@ -398,7 +463,21 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
+    document.getElementById("watchlist-form")?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const input = document.getElementById("watchlist-input");
+      const ticker = input.value.trim().toUpperCase();
+      if (!ticker) return;
+      try {
+        await addWatchlistItem(ticker);
+        input.value = "";
+      } catch (_err) {
+        toast(`Failed to add ${ticker}`, "error");
+      }
+    });
+
     loadPortfolio().then(() => loadNetworth().catch(console.error));
+    loadWatchlist().catch(console.error);
     loadMarket();
     setInterval(loadMarket, 120_000);
   }

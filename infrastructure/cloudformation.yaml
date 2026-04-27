@@ -136,6 +136,18 @@ Resources:
         - AttributeName: id
           KeyType: HASH
 
+  WatchlistTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: cloudfolio-watchlist
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+
   # ── Lambda IAM Role ───────────────────────────────────────────────────────
   LambdaRole:
     Type: AWS::IAM::Role
@@ -165,6 +177,7 @@ Resources:
                 Resource:
                   - !GetAtt HoldingsTable.Arn
                   - !GetAtt NetworthTable.Arn
+                  - !GetAtt WatchlistTable.Arn
 
   # ── Lambda Functions ──────────────────────────────────────────────────────
   GetPortfolioFunction:
@@ -289,6 +302,52 @@ Resources:
         Variables:
           NETWORTH_TABLE: !Ref NetworthTable
 
+  GetWatchlistFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: cloudfolio-get-watchlist
+      Runtime: python3.12
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt LambdaRole.Arn
+      Code:
+        ZipFile: |
+          def lambda_handler(event, context):
+              return {"statusCode": 200, "body": "placeholder"}
+      Environment:
+        Variables:
+          WATCHLIST_TABLE: !Ref WatchlistTable
+          POLYGON_API_KEY: !Ref PolygonApiKey
+
+  PostWatchlistItemFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: cloudfolio-post-watchlist-item
+      Runtime: python3.12
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt LambdaRole.Arn
+      Code:
+        ZipFile: |
+          def lambda_handler(event, context):
+              return {"statusCode": 200, "body": "placeholder"}
+      Environment:
+        Variables:
+          WATCHLIST_TABLE: !Ref WatchlistTable
+
+  DeleteWatchlistItemFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: cloudfolio-delete-watchlist-item
+      Runtime: python3.12
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt LambdaRole.Arn
+      Code:
+        ZipFile: |
+          def lambda_handler(event, context):
+              return {"statusCode": 200, "body": "placeholder"}
+      Environment:
+        Variables:
+          WATCHLIST_TABLE: !Ref WatchlistTable
+
   # ── API Gateway ───────────────────────────────────────────────────────────
   Api:
     Type: AWS::ApiGateway::RestApi
@@ -359,6 +418,27 @@ Resources:
     Properties:
       RestApiId: !Ref Api
       ParentId: !Ref NetworthItemResource
+      PathPart: "{id}"
+
+  WatchlistResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref Api
+      ParentId: !GetAtt Api.RootResourceId
+      PathPart: watchlist
+
+  WatchlistItemResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref Api
+      ParentId: !Ref WatchlistResource
+      PathPart: item
+
+  WatchlistItemIdResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref Api
+      ParentId: !Ref WatchlistItemResource
       PathPart: "{id}"
 
   # CORS preflight — existing routes
@@ -555,6 +635,78 @@ Resources:
             method.response.header.Access-Control-Allow-Methods: true
             method.response.header.Access-Control-Allow-Origin: true
 
+  WatchlistOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref Api
+      ResourceId: !Ref WatchlistResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+
+  WatchlistItemOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref Api
+      ResourceId: !Ref WatchlistItemResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+
+  WatchlistItemIdOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref Api
+      ResourceId: !Ref WatchlistItemIdResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+              method.response.header.Access-Control-Allow-Methods: "'DELETE,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+
   # Authenticated methods — existing
   GetPortfolioMethod:
     Type: AWS::ApiGateway::Method
@@ -677,6 +829,51 @@ Resources:
           - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${Arn}/invocations
           - Arn: !GetAtt DeleteNetworthItemFunction.Arn
 
+  GetWatchlistMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref Api
+      ResourceId: !Ref WatchlistResource
+      HttpMethod: GET
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${Arn}/invocations
+          - Arn: !GetAtt GetWatchlistFunction.Arn
+
+  PostWatchlistItemMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref Api
+      ResourceId: !Ref WatchlistItemResource
+      HttpMethod: POST
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${Arn}/invocations
+          - Arn: !GetAtt PostWatchlistItemFunction.Arn
+
+  DeleteWatchlistItemMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref Api
+      ResourceId: !Ref WatchlistItemIdResource
+      HttpMethod: DELETE
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${Arn}/invocations
+          - Arn: !GetAtt DeleteWatchlistItemFunction.Arn
+
   # Lambda invoke permissions
   GetPortfolioPermission:
     Type: AWS::Lambda::Permission
@@ -761,9 +958,39 @@ Resources:
       - NetworthOptionsMethod
       - NetworthItemOptionsMethod
       - NetworthItemIdOptionsMethod
+      - GetWatchlistMethod
+      - PostWatchlistItemMethod
+      - DeleteWatchlistItemMethod
+      - WatchlistOptionsMethod
+      - WatchlistItemOptionsMethod
+      - WatchlistItemIdOptionsMethod
     Properties:
       RestApiId: !Ref Api
       StageName: prod
+
+  GetWatchlistPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref GetWatchlistFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/*
+
+  PostWatchlistItemPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref PostWatchlistItemFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/*
+
+  DeleteWatchlistItemPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref DeleteWatchlistItemFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/*
 
   # ── CloudWatch Monitoring (REL 6) ─────────────────────────────────────────
   LambdaErrorRateAlarm:

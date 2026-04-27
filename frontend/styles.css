@@ -49,7 +49,7 @@ header h1 { font-size: 1.3rem; letter-spacing: 0.03em; }
 
 @media (max-width: 1024px) {
   .app-layout { grid-template-columns: 1fr; }
-  #left-col, #market-sidebar, #portfolio-sidebar { display: none; }
+  #left-col, #right-col, #market-sidebar, #portfolio-sidebar { display: none; }
 }
 
 /* ── Cards ─────────────────────────────────────────────────────────────── */
@@ -385,7 +385,7 @@ body.login-page {
 }
 .back-link:hover { color: #fff; }
 
-/* ── Left column wrapper ────────────────────────────────────────────────── */
+/* ── Column wrappers (left + right) ─────────────────────────────────────── */
 #left-col {
   display: flex;
   flex-direction: column;
@@ -398,6 +398,87 @@ body.login-page {
 #left-col .sidebar {
   position: static;
 }
+
+#right-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  align-self: start;
+  position: sticky;
+  top: 70px;
+}
+
+#right-col .sidebar {
+  position: static;
+}
+
+/* ── Watchlist ───────────────────────────────────────────────────────────── */
+.watchlist-list {
+  list-style: none;
+  margin-bottom: 0.75rem;
+}
+
+.watchlist-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f3f3f3;
+  gap: 0.4rem;
+}
+.watchlist-item:last-child { border-bottom: none; }
+
+.watchlist-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex: 1;
+  gap: 0.1rem;
+}
+
+.watchlist-remove {
+  background: none;
+  border: none;
+  color: #ccc;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0 0.1rem;
+  line-height: 1;
+}
+.watchlist-remove:hover { color: #dc2626; }
+
+.watchlist-empty {
+  font-size: 0.85rem;
+  color: #aaa;
+  padding: 0.25rem 0 0.75rem;
+}
+
+.watchlist-add-form {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.watchlist-add-form input {
+  flex: 1;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  outline: none;
+}
+.watchlist-add-form input:focus { border-color: #1a1a2e; }
+
+.watchlist-add-btn {
+  padding: 0.4rem 0.75rem;
+  background: #1a1a2e;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1;
+}
+.watchlist-add-btn:hover { background: #2e2e5e; }
 
 .nw-btn {
   margin-top: 0.75rem;
